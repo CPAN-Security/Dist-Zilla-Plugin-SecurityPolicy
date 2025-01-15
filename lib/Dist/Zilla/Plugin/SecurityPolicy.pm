@@ -103,7 +103,7 @@ no Moose;
 
 =head1 DESCRIPTION
 
-This plugin adds a SECURITY.md file as generated using L<Software::Security::Policy|Software::Security::Policy>.
+This plugin adds a SECURITY.md file as generated using L<Software::Security::Policy|Software::Security::Policy>. Any options to this plugin that are prefixed by C<-> are kept for this module, any others will be passed to the constructor of the security policy.
 
 =attr policy_class
 
@@ -116,6 +116,10 @@ This sets the used policy class.
 E.g. C<policy = Individual>
 
 This is a short hand for setting the policy, allowing you to skip prepending C<Software::Security::Policy::>
+
+=attr policy_version
+
+The minimum version of the policy class, defaults to C<0>.
 
 =attr filename
 
