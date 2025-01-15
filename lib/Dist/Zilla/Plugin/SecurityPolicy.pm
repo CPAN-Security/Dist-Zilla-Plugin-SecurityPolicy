@@ -2,11 +2,12 @@ package Dist::Zilla::Plugin::SecurityPolicy;
 
 use strict;
 use warnings;
+no autovivification;
 
 use Moose;
 with qw/Dist::Zilla::Role::FileGatherer Dist::Zilla::Role::PrereqSource/;
 
-use MooseX::Types::Moose qw/Str HashRef/;
+use MooseX::Types::Moose qw/Str Bool HashRef/;
 use MooseX::Types::Perl qw/StrictVersionStr/;
 
 use Carp 'croak';
@@ -39,6 +40,12 @@ has filename => (
 	default  => 'SECURITY.md',
 );
 
+has auto_url => (
+	is       => 'ro',
+	isa      => Bool,
+	default  => !!0,
+);
+
 around plugin_from_config => sub {
 	my ($orig, $class, $name, $args, $section) = @_;
 
@@ -68,6 +75,15 @@ sub gather_files {
 		program    => $zilla->name,
 		$self->policy_args,
 	);
+
+	if ($self->auto_url) {
+		if (my $base = $zilla->distmeta->{resources}{repository}{web}) {
+			if ($base =~ m{https://github.com/([\w-]+/[\w-]+)}) {
+				$policy_args{url} = "$base/blob/HEAD/" . $self->filename;
+			}
+			# also need gitlab and others here
+		}
+	}
 
 	require_module($self->policy_class);
 	my $policy = $self->policy_class->new(\%policy_args);
@@ -99,6 +115,7 @@ no Moose;
 
  [SecurityPolicy]
  -policy = Individual
+ -auto_url = 1
  timeframe = 2 weeks
 
 =head1 DESCRIPTION
@@ -124,3 +141,7 @@ The minimum version of the policy class, defaults to C<0>.
 =attr filename
 
 This allows you to override the name of the security file. It default to C<SECURITY.md> and you should probably not change it.
+
+=attr auto_url
+
+If set to C<1>, this adds a url argument to the policy pointing to the expected location of the security file as derived from the git remote.
