@@ -5,7 +5,7 @@ use warnings;
 no autovivification;
 
 use Moose;
-with qw/Dist::Zilla::Role::FileGatherer Dist::Zilla::Role::PrereqSource/;
+with qw/Dist::Zilla::Role::FileGatherer Dist::Zilla::Role::PrereqSource Dist::Zilla::Role::FilePruner/;
 
 use MooseX::Types::Moose qw/Str Bool HashRef/;
 use MooseX::Types::Perl qw/StrictVersionStr/;
@@ -101,6 +101,16 @@ sub register_prereqs {
 	my $self = shift;
 	$self->zilla->register_prereqs({ phase => 'develop' }, $self->policy_class => $self->policy_version);
 	return;
+}
+
+sub prune_files {
+	my $self = shift;
+
+	my @files = @{ $self->zilla->files };
+	my $filename = $self->filename;
+	for my $file (@files) {
+		$self->zilla->prune_file($file) if $file->name eq $filename and $file->added_by !~ __PACKAGE__;
+	}
 }
 
 __PACKAGE__->meta->make_immutable;
